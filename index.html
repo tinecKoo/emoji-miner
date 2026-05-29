@@ -45,16 +45,16 @@
         }
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 18px;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 16px;
             max-width: 1100px;
             margin: 30px auto;
         }
         .emoji-card {
             background: #16213e;
             border-radius: 18px;
-            padding: 15px 8px;
-            font-size: 3.8rem;
+            padding: 12px 8px;
+            font-size: 3.5rem;
             box-shadow: 0 8px 25px rgba(0,0,0,0.4);
             transition: 0.3s;
             text-align: center;
@@ -63,8 +63,8 @@
         
         .gallery-emoji {
             filter: brightness(0.25) grayscale(1);
-            font-size: 3.5rem;
-            margin-bottom: 8px;
+            font-size: 3.2rem;
+            margin-bottom: 6px;
         }
         
         .stats {
@@ -84,10 +84,9 @@
             cursor: pointer;
         }
 
-        /* Gallery text fix */
         .gallery-info {
-            font-size: 0.85rem;
-            line-height: 1.2;
+            font-size: 0.8rem;
+            line-height: 1.1;
         }
     </style>
 </head>
@@ -126,7 +125,7 @@
     <!-- Leaderboard Tab -->
     <div id="tab2" class="tab">
         <h2>🌍 Global Leaderboard</h2>
-        <div id="leaderboard" style="font-size:1.3rem; max-width:600px; margin:30px auto;"></div>
+        <div id="leaderboard" style="font-size:1.2rem; max-width:600px; margin:30px auto;"></div>
     </div>
 
     <!-- Themes Tab -->
@@ -177,7 +176,7 @@
             }).forEach(item => {
                 const div = document.createElement('div');
                 div.className = `emoji-card ${item.rarity}`;
-                div.innerHTML = `${item.emoji}<div style="font-size:0.85rem;margin-top:6px">${item.rarity.toUpperCase()}</div><small>x${item.count}</small>`;
+                div.innerHTML = `${item.emoji}<div style="font-size:0.8rem;margin-top:6px">${item.rarity.toUpperCase()}</div><small>x${item.count}</small>`;
                 grid.appendChild(div);
             });
 
