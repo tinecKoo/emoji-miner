@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Emoji Miner ⏳</title>
+<style>
+    body {
+        font-family: system-ui, sans-serif;
+        background: #0f0f1a;
+        color: #fff;
+        text-align: center;
+        margin: 0;
+        padding: 20px;
+    }
+    h1 { margin: 10px 0; }
+    .timer {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #ffd700;
+    }
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 15px;
+        max-width: 800px;
+        margin: 30px auto;
+    }
+    .emoji-card {
+        background: #1a1a2e;
+        border-radius: 12px;
+        padding: 15px;
+        font-size: 3rem;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    .emoji-card:hover { transform: scale(1.1); }
+    .common { border: 2px solid #aaa; }
+    .uncommon { border: 2px solid #4ade80; }
+    .rare { border: 2px solid #60a5fa; }
+    .epic { border: 2px solid #c084fc; }
+    .legendary { border: 2px solid #fbbf24; box-shadow: 0 0 15px #fbbf24; }
+    
+    .rarity {
+        font-size: 0.8rem;
+        margin-top: 8px;
+        font-weight: bold;
+    }
+    .stats {
+        margin: 20px auto;
+        padding: 15px;
+        background: #1a1a2e;
+        border-radius: 12px;
+        max-width: 400px;
+    }
+    button {
+        padding: 12px 24px;
+        font-size: 1.1rem;
+        background: #7c3aed;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin: 10px;
+    }
+    button:hover { background: #6d28d9; }
+</style>
+</head>
+<body>
+    <h1>Emoji Miner ⏳</h1>
+    <p>Stay on the page — get a new emoji every minute!</p>
+    
+    <div class="timer" id="timer">Next in: 60s</div>
+    
+    <button onclick="claimNow()">Claim Early (1 min cooldown)</button>
+    
+    <div class="stats">
+        <strong>Total Collected:</strong> <span id="total">0</span> |
+        <strong>Unique:</strong> <span id="unique">0</span>
+    </div>
+
+    <h2>Your Collection</h2>
+    <div class="grid" id="collection"></div>
+
+    <script>
+        // Emojis with rarities
+        const emojis = [
+            {emoji: "😀", name: "Grin", rarity: "common"},
+            {emoji: "😂", name: "Laugh", rarity: "common"},
+            {emoji: "❤️", name: "Heart", rarity: "common"},
+            {emoji: "🔥", name: "Fire", rarity: "uncommon"},
+            {emoji: "⭐", name: "Star", rarity: "uncommon"},
+            {emoji: "🚀", name: "Rocket", rarity: "uncommon"},
+            {emoji: "🌈", name: "Rainbow", rarity: "rare"},
+            {emoji: "🦄", name: "Unicorn", rarity: "rare"},
+            {emoji: "🍄", name: "Mushroom", rarity: "rare"},
+            {emoji: "⚡", name: "Lightning", rarity: "epic"},
+            {emoji: "👑", name: "Crown", rarity: "epic"},
+            {emoji: "🐉", name: "Dragon", rarity: "epic"},
+            {emoji: "🌌", name: "Galaxy", rarity: "legendary"},
+            {emoji: "🎇", name: "Firework", rarity: "legendary"},
+            {emoji: "🧿", name: "Evil Eye", rarity: "legendary"}
+        ];
+
+        let collection = JSON.parse(localStorage.getItem('emojiCollection')) || {};
+        let lastClaim = parseInt(localStorage.getItem('lastClaim')) || 0;
+
+        function getRarityColor(rarity) {
+            return rarity === 'legendary' ? 'legendary' :
+                   rarity === 'epic' ? 'epic' :
+                   rarity === 'rare' ? 'rare' :
+                   rarity === 'uncommon' ? 'uncommon' : 'common';
+        }
+
+        function saveCollection() {
+            localStorage.setItem('emojiCollection', JSON.stringify(collection));
+            localStorage.setItem('lastClaim', Date.now());
+        }
+
+        function updateDisplay() {
+            const grid = document.getElementById('collection');
+            grid.innerHTML = '';
+            
+            Object.keys(collection).forEach(key => {
+                const item = collection[key];
+                const div = document.createElement('div');
+                div.className = `emoji-card ${getRarityColor(item.rarity)}`;
+                div.innerHTML = `
+                    ${item.emoji}
+                    <div class="rarity">${item.rarity.toUpperCase()}</div>
+                    <small>x${item.count}</small>
+                `;
+                grid.appendChild(div);
+            });
+
+            let total = 0;
+            let unique = Object.keys(collection).length;
+            Object.values(collection).forEach(item => total += item.count);
+            
+            document.getElementById('total').textContent = total;
+            document.getElementById('unique').textContent = unique;
+        }
+
+        function getRandomEmoji() {
+            const roll = Math.random();
+            let pool;
+            
+            if (roll < 0.50) pool = emojis.filter(e => e.rarity === 'common');
+            else if (roll < 0.80) pool = emojis.filter(e => e.rarity === 'uncommon');
+            else if (roll < 0.95) pool = emojis.filter(e => e.rarity === 'rare');
+            else if (roll < 0.99) pool = emojis.filter(e => e.rarity === 'epic');
+            else pool = emojis.filter(e => e.rarity === 'legendary');
+
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function awardEmoji() {
+            const now = Date.now();
+            if (now - lastClaim < 60000) {
+                alert("Wait for the timer! ⏳");
+                return;
+            }
+
+            const emoji = getRandomEmoji();
+            
+            if (!collection[emoji.name]) {
+                collection[emoji.name] = { ...emoji, count: 0 };
+            }
+            collection[emoji.name].count++;
+
+            lastClaim = now;
+            saveCollection();
+            updateDisplay();
+
+            // Celebration
+            const notif = document.createElement('div');
+            notif.style.cssText = 'position:fixed; top:20%; left:50%; transform:translate(-50%,-50%); font-size:5rem; z-index:100; animation: pop 1s;';
+            notif.textContent = emoji.emoji;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 1200);
+        }
+
+        // Timer
+        let timeLeft = 60;
+        setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                awardEmoji();
+                timeLeft = 60;
+            }
+            document.getElementById('timer').textContent = `Next in: ${timeLeft}s`;
+        }, 1000);
+
+        // Manual claim
+        window.claimNow = function() {
+            awardEmoji();
+        };
+
+        // Init
+        updateDisplay();
+        document.getElementById('timer').textContent = `Next in: 60s`;
+    </script>
+</body>
+</html>
