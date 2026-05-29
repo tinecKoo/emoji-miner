@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emoji Miner v1.2</title>
     <style>
-        :root {
-            --bg: #0a0a1a;
-            --accent: #7c3aed;
-        }
+        :root { --bg: #0a0a1a; --accent: #7c3aed; }
         body {
             font-family: system-ui, sans-serif;
             background: var(--bg);
@@ -43,16 +40,21 @@
         .emoji-card {
             background: #16213e;
             border-radius: 20px;
-            padding: 18px;
-            font-size: 4rem;
+            padding: 15px;
+            font-size: 3.8rem;
             text-align: center;
             transition: all 0.3s;
             box-shadow: 0 8px 25px rgba(0,0,0,0.5);
             cursor: pointer;
         }
-        .emoji-card:hover { transform: scale(1.15); }
+        .emoji-card:hover { transform: scale(1.12); }
 
-        /* Rarity Colors */
+        .rarity-name {
+            font-size: 0.95rem;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
         .common { border: 3px solid #9ca3af; }
         .uncommon { border: 3px solid #4ade80; }
         .rare { border: 3px solid #60a5fa; }
@@ -61,17 +63,13 @@
         .divine { border: 3px solid #a78bfa; box-shadow: 0 0 20px #a78bfa; }
 
         .health-bar {
-            height: 12px;
+            height: 14px;
             background: #333;
             border-radius: 10px;
             overflow: hidden;
             margin: 8px 0;
         }
-        .health-fill {
-            height: 100%;
-            background: #22c55e;
-            transition: width 0.4s;
-        }
+        .health-fill { height: 100%; background: #22c55e; transition: width 0.4s; }
         .battle-log {
             background: #111827;
             padding: 20px;
@@ -120,7 +118,7 @@
     <!-- Themes -->
     <div id="tab3" class="tab">
         <h2>🎨 Themes</h2>
-        <div style="text-align:center; gap:15px; display:flex; flex-wrap:wrap; justify-content:center;">
+        <div style="text-align:center; display:flex; flex-wrap:wrap; justify-content:center; gap:15px;">
             <button onclick="setTheme(0)">Default</button>
             <button onclick="setTheme(1)">Kayn (LoL)</button>
             <button onclick="setTheme(2)">Marin</button>
@@ -138,15 +136,16 @@
     <div id="tab5" class="tab">
         <h2>🏰 Dungeon - Goblin Lair</h2>
         <div id="battle-area" style="text-align:center; margin:20px;"></div>
-        <div class="battle-log" id="battle-log">Welcome to the dungeon! Win battles to earn swords.</div>
+        <div class="battle-log" id="battle-log">Welcome! Win battles to earn swords.</div>
         <div style="text-align:center;">
-            <button onclick="startBattle()" style="padding:16px 40px; font-size:1.2rem;">Start Battle</button>
+            <button onclick="startBattle()" style="padding:16px 40px; font-size:1.2rem;">Start New Battle</button>
         </div>
     </div>
 
     <script>
         let collection = JSON.parse(localStorage.getItem('emojiCollection')) || {};
         let swords = JSON.parse(localStorage.getItem('swords')) || [];
+        let battleActive = false;
 
         const allEmojis = [
             {emoji: "😀", name: "Grin", rarity: "common"},
@@ -172,7 +171,7 @@
             Object.values(collection).forEach(item => {
                 const div = document.createElement('div');
                 div.className = `emoji-card ${getRarityClass(item.rarity)}`;
-                div.innerHTML = item.emoji;
+                div.innerHTML = `${item.emoji}<div class="rarity-name">${item.name}</div>`;
                 grid.appendChild(div);
             });
         }
@@ -183,7 +182,7 @@
             allEmojis.forEach(e => {
                 const div = document.createElement('div');
                 div.className = `emoji-card ${getRarityClass(e.rarity)}`;
-                div.innerHTML = e.emoji;
+                div.innerHTML = `${e.emoji}<div class="rarity-name">${e.name}</div>`;
                 g.appendChild(div);
             });
         }
@@ -191,24 +190,22 @@
         function buildSwords() {
             const grid = document.getElementById('swords-grid');
             grid.innerHTML = '';
-            swords.forEach((s, i) => {
+            swords.forEach(s => {
                 const div = document.createElement('div');
                 div.className = 'emoji-card';
                 div.innerHTML = `⚔️<br><small>${s.name}<br>Power: ${s.power}</small>`;
                 grid.appendChild(div);
             });
-            if (swords.length === 0) {
-                grid.innerHTML = "<p>You have no swords yet. Win dungeons to earn them!</p>";
-            }
+            if (swords.length === 0) grid.innerHTML += "<p style='grid-column:1/-1'>No swords yet. Win dungeons!</p>";
         }
 
         function buildLeaderboard() {
             const unique = Object.keys(collection).length;
             document.getElementById('leaderboard').innerHTML = `
                 <ol>
-                    <li>1. TrenGod69 — 98</li>
-                    <li>2. ShadowKayn — 71</li>
-                    <li style="color:#c026d3"><strong>You — ${unique} unique</strong></li>
+                    <li>1. TrenGod69 — 98 unique</li>
+                    <li>2. ShadowKayn — 71 unique</li>
+                    <li style="color:#c026d3"><strong>You — ${unique} unique 🔥</strong></li>
                 </ol>
             `;
         }
@@ -228,12 +225,15 @@
             updateCollection();
         }
 
-        // Dungeon Battle
-        let currentPlayerEmoji = null;
+        // === BATTLE SYSTEM ===
+        let currentPlayer = null;
         let playerHP = 100;
         let enemyHP = 80;
+        let rewardGiven = false;
 
         function startBattle() {
+            rewardGiven = false;
+            battleActive = true;
             const area = document.getElementById('battle-area');
             area.innerHTML = `<h3>Choose your fighter:</h3><div class="grid" id="fighter-select"></div>`;
 
@@ -241,67 +241,75 @@
             Object.values(collection).forEach(item => {
                 const div = document.createElement('div');
                 div.className = `emoji-card ${getRarityClass(item.rarity)}`;
-                div.innerHTML = item.emoji;
+                div.innerHTML = `${item.emoji}<div class="rarity-name">${item.name}</div>`;
                 div.onclick = () => beginFight(item);
                 select.appendChild(div);
             });
         }
 
         function beginFight(emoji) {
-            currentPlayerEmoji = emoji;
+            currentPlayer = emoji;
             playerHP = 100;
             enemyHP = 80;
+            rewardGiven = false;
 
             const area = document.getElementById('battle-area');
             area.innerHTML = `
                 <div style="display:flex; justify-content:center; gap:60px; align-items:center; flex-wrap:wrap;">
-                    <div>
+                    <div style="text-align:center;">
                         <h3>${emoji.emoji} ${emoji.name}</h3>
                         <div class="health-bar"><div class="health-fill" id="player-health" style="width:100%"></div></div>
                         <span>HP: <span id="player-hp">100</span></span>
                     </div>
-                    <div style="font-size:4rem;">VS</div>
-                    <div>
+                    <div style="font-size:4.5rem;">VS</div>
+                    <div style="text-align:center;">
                         <h3>👹 Goblin</h3>
                         <div class="health-bar"><div class="health-fill" id="enemy-health" style="width:100%"></div></div>
                         <span>HP: <span id="enemy-hp">80</span></span>
                     </div>
                 </div>
-                <div style="margin-top:20px;">
-                    <button onclick="playerAttack()" style="padding:12px 30px; font-size:1.1rem;">Attack</button>
+                <div style="margin-top:25px;">
+                    <button onclick="playerAttack()" style="padding:14px 36px; font-size:1.2rem;">Attack</button>
                 </div>
             `;
         }
 
         function playerAttack() {
+            if (!battleActive || enemyHP <= 0) return;
+
             const dmg = Math.floor(Math.random() * 22) + 15;
             enemyHP = Math.max(0, enemyHP - dmg);
             document.getElementById('enemy-hp').textContent = enemyHP;
             document.getElementById('enemy-health').style.width = (enemyHP / 80 * 100) + '%';
 
-            document.getElementById('battle-log').innerHTML += `<br>You attacked! Dealt ${dmg} damage.`;
+            document.getElementById('battle-log').innerHTML += `<br>→ You attacked! Dealt ${dmg} damage.`;
 
             if (enemyHP <= 0) {
-                document.getElementById('battle-log').innerHTML += `<br><strong>🎉 You defeated the Goblin! Earned a sword!</strong>`;
-                const newSword = {name: "Iron Sword", power: 25};
-                swords.push(newSword);
-                localStorage.setItem('swords', JSON.stringify(swords));
+                document.getElementById('battle-log').innerHTML += `<br><strong>🎉 Victory! You earned a new sword!</strong>`;
+                if (!rewardGiven) {
+                    swords.push({name: "Iron Sword", power: 25});
+                    localStorage.setItem('swords', JSON.stringify(swords));
+                    rewardGiven = true;
+                }
+                battleActive = false;
                 return;
             }
 
-            // Enemy counter attack
+            // Enemy attacks back
             setTimeout(() => {
-                const enemyDmg = Math.floor(Math.random() * 18) + 10;
+                if (playerHP <= 0) return;
+                const enemyDmg = Math.floor(Math.random() * 16) + 10;
                 playerHP = Math.max(0, playerHP - enemyDmg);
                 document.getElementById('player-hp').textContent = playerHP;
                 document.getElementById('player-health').style.width = (playerHP / 100 * 100) + '%';
 
-                document.getElementById('battle-log').innerHTML += `<br>Goblin attacked! You took ${enemyDmg} damage.`;
+                document.getElementById('battle-log').innerHTML += `<br>← Goblin hit you for ${enemyDmg} damage!`;
 
                 if (playerHP <= 0) {
                     document.getElementById('battle-log').innerHTML += `<br><strong>💀 You were defeated...</strong>`;
+                    battleActive = false;
                 }
-            }, 900);
+            }, 800);
         }
 
         function switchTab(n) {
