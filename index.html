@@ -17,6 +17,10 @@
             padding: 20px;
             min-height: 100vh;
         }
+        h1 { margin: 10px 0 5px; font-size: 2.8rem; text-shadow: 0 0 20px var(--accent); }
+        nav {
+            margin: 20px 0;
+        }
         nav button {
             padding: 12px 20px;
             margin: 5px;
@@ -25,33 +29,50 @@
             color: white;
             border-radius: 12px;
             cursor: pointer;
+            font-weight: bold;
         }
-        nav button.active { background: var(--accent); }
-
+        nav button.active {
+            background: var(--accent);
+        }
         .tab { display: none; }
         .tab.active { display: block; }
 
+        .timer {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ffd700;
+            margin: 20px 0;
+        }
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
             gap: 20px;
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 30px auto;
         }
         .emoji-card {
             background: #16213e;
             border-radius: 20px;
-            padding: 20px;
+            padding: 20px 10px;
             font-size: 4rem;
             box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            transition: 0.3s;
         }
+        .emoji-card:hover { transform: scale(1.1); }
         .gallery-emoji {
-            filter: brightness(0.3) grayscale(1);
-            font-size: 3.5rem;
+            filter: brightness(0.25) grayscale(1);
+            font-size: 3.8rem;
         }
-
+        .stats {
+            margin: 20px auto;
+            padding: 15px;
+            background: rgba(22,33,62,0.9);
+            border-radius: 16px;
+            max-width: 500px;
+        }
         button.main {
-            padding: 14px 30px;
+            padding: 14px 28px;
+            margin: 6px;
             background: var(--accent);
             color: white;
             border: none;
@@ -79,7 +100,7 @@
         <button onclick="shareCollection()">Share</button>
         
         <div class="stats">
-            <strong>Total:</strong> <span id="total">0</span> | 
+            <strong>Total Collected:</strong> <span id="total">0</span> | 
             <strong>Unique:</strong> <span id="unique">0</span>
         </div>
         <div class="grid" id="collection"></div>
@@ -87,54 +108,50 @@
 
     <!-- Gallery Tab -->
     <div id="tab1" class="tab">
-        <h2>Full Emoji Index</h2>
-        <p>All emojis (shown in black) + Drop Chance</p>
+        <h2>📖 Full Emoji Index</h2>
+        <p>All emojis in black + drop chance</p>
         <div class="grid" id="gallery"></div>
     </div>
 
     <!-- Leaderboard Tab -->
     <div id="tab2" class="tab">
         <h2>🌍 Global Leaderboard</h2>
-        <div id="leaderboard"></div>
+        <div id="leaderboard" style="font-size:1.3rem; max-width:600px; margin:30px auto;"></div>
     </div>
 
     <!-- Themes Tab -->
     <div id="tab3" class="tab">
-        <h2>Themes</h2>
+        <h2>🎨 Choose Theme</h2>
         <button onclick="setTheme(0)">Default</button>
-        <button onclick="setTheme(1)">Kayn (LoL)</button>
-        <button onclick="setTheme(2)">Marin</button>
+        <button onclick="setTheme(1)">Kayn (League of Legends)</button>
+        <button onclick="setTheme(2)">Marin (My Dress-Up Darling)</button>
         <button onclick="setTheme(3)">Tren Twins</button>
     </div>
 
     <script>
-        // === EMOJIS (with secret Kayn) ===
         let emojis = [
             {emoji: "😀", name: "Grin", rarity: "common", chance: "45%"},
-            {emoji: "😂", name: "Laugh", rarity: "common", chance: "45%"},
-            {emoji: "❤️", name: "Heart", rarity: "common", chance: "45%"},
-            {emoji: "🔥", name: "Fire", rarity: "uncommon", chance: "30%"},
-            {emoji: "⭐", name: "Star", rarity: "uncommon", chance: "30%"},
-            {emoji: "🚀", name: "Rocket", rarity: "uncommon", chance: "30%"},
-            {emoji: "🌈", name: "Rainbow", rarity: "rare", chance: "15%"},
-            {emoji: "🦄", name: "Unicorn", rarity: "rare", chance: "15%"},
-            {emoji: "⚡", name: "Lightning", rarity: "epic", chance: "7%"},
-            {emoji: "👑", name: "Crown", rarity: "epic", chance: "7%"},
-            {emoji: "🐉", name: "Dragon", rarity: "legendary", chance: "2.5%"},
-            {emoji: "🌌", name: "Galaxy", rarity: "legendary", chance: "2.5%"},
+            {emoji: "😂", name: "Laugh", rarity: "common", chance: "30%"},
+            {emoji: "❤️", name: "Heart", rarity: "common", chance: "30%"},
+            {emoji: "🔥", name: "Fire", rarity: "uncommon", chance: "20%"},
+            {emoji: "⭐", name: "Star", rarity: "uncommon", chance: "15%"},
+            {emoji: "🚀", name: "Rocket", rarity: "uncommon", chance: "15%"},
+            {emoji: "🌈", name: "Rainbow", rarity: "rare", chance: "10%"},
+            {emoji: "🦄", name: "Unicorn", rarity: "rare", chance: "8%"},
+            {emoji: "⚡", name: "Lightning", rarity: "epic", chance: "5%"},
+            {emoji: "👑", name: "Crown", rarity: "epic", chance: "4%"},
+            {emoji: "🐉", name: "Dragon", rarity: "legendary", chance: "2%"},
+            {emoji: "🌌", name: "Galaxy", rarity: "legendary", chance: "1.5%"},
             {emoji: "🌸", name: "Sakura", rarity: "mythic", chance: "0.8%"},
-            {emoji: "🦋", name: "Butterfly", rarity: "mythic", chance: "0.8%"},
-            {emoji: "✨", name: "Divine Spark", rarity: "divine", chance: "0.3%"}
+            {emoji: "🦋", name: "Butterfly", rarity: "mythic", chance: "0.7%"},
+            {emoji: "✨", name: "Divine", rarity: "divine", chance: "0.3%"}
         ];
 
-        // Secret Kayn Emoji
         const secretKayn = {emoji: "🌑", name: "Shadow Kayn", rarity: "divine", chance: "0.1%"};
 
         let collection = JSON.parse(localStorage.getItem('emojiCollection')) || {};
         let lastClaim = parseInt(localStorage.getItem('lastClaim')) || 0;
         let currentTheme = 0;
-
-        function getRarityClass(r) { return r.toLowerCase(); }
 
         function saveCollection() {
             localStorage.setItem('emojiCollection', JSON.stringify(collection));
@@ -142,20 +159,21 @@
         }
 
         function updateDisplay() {
-            // Collection grid (normal colored)
             const grid = document.getElementById('collection');
             grid.innerHTML = '';
+            
             Object.values(collection).sort((a,b) => {
                 const order = ['divine','mythic','legendary','epic','rare','uncommon','common'];
                 return order.indexOf(a.rarity) - order.indexOf(b.rarity);
             }).forEach(item => {
                 const div = document.createElement('div');
-                div.className = `emoji-card ${getRarityClass(item.rarity)}`;
-                div.innerHTML = `${item.emoji}<div class="rarity">${item.rarity}</div><small>x${item.count}</small>`;
+                div.className = `emoji-card ${item.rarity}`;
+                div.innerHTML = `${item.emoji}<div style="font-size:0.9rem;margin-top:8px">${item.rarity.toUpperCase()}</div><small>x${item.count}</small>`;
                 grid.appendChild(div);
             });
 
-            document.getElementById('total').textContent = Object.values(collection).reduce((a,i)=>a+i.count,0);
+            let total = Object.values(collection).reduce((sum, item) => sum + item.count, 0);
+            document.getElementById('total').textContent = total;
             document.getElementById('unique').textContent = Object.keys(collection).length;
         }
 
@@ -167,7 +185,7 @@
                 div.className = 'emoji-card';
                 div.innerHTML = `
                     <div class="gallery-emoji">${e.emoji}</div>
-                    <div class="rarity">${e.rarity.toUpperCase()}</div>
+                    <div style="font-size:1rem;margin:8px 0">${e.rarity.toUpperCase()}</div>
                     <small>${e.chance} chance</small>
                 `;
                 g.appendChild(div);
@@ -175,15 +193,14 @@
         }
 
         function buildLeaderboard() {
-            const lb = document.getElementById('leaderboard');
-            const yourUnique = Object.keys(collection).length;
-            lb.innerHTML = `
-                <ol style="font-size:1.3rem;">
-                    <li>1. TrenGod69 — 87 unique</li>
-                    <li>2. MarinCollector — 64 unique</li>
-                    <li>3. ShadowKaynMain — 51 unique</li>
-                    <li style="color:#7c3aed"><strong>→ You — ${yourUnique} unique</strong></li>
-                    <li>5. AnimeFan22 — 42 unique</li>
+            const unique = Object.keys(collection).length;
+            document.getElementById('leaderboard').innerHTML = `
+                <ol>
+                    <li>1. TrenGod69 — 92 unique</li>
+                    <li>2. ShadowReaper — 68 unique</li>
+                    <li>3. MarinFan — 61 unique</li>
+                    <li style="color:#c026d3"><strong>You — ${unique} unique 🔥</strong></li>
+                    <li>5. GymBro420 — 47 unique</li>
                 </ol>
             `;
         }
@@ -192,40 +209,34 @@
             currentTheme = n;
             const root = document.documentElement;
             if (n === 1) { // Kayn
-                root.style.setProperty('--bg', '#0f0a1a');
+                document.body.style.background = 'linear-gradient(135deg, #1e0a2e, #4c1d95)';
                 root.style.setProperty('--accent', '#9f1239');
-                document.body.style.background = 'linear-gradient(135deg, #1a0f2e, #4c1d95)';
             } else if (n === 2) { // Marin
-                root.style.setProperty('--bg', '#1a0f1a');
-                root.style.setProperty('--accent', '#ec4899');
                 document.body.style.background = 'linear-gradient(135deg, #fce7f3, #831843)';
+                root.style.setProperty('--accent', '#ec4899');
             } else if (n === 3) { // Tren Twins
-                root.style.setProperty('--bg', '#0a1a0a');
-                root.style.setProperty('--accent', '#22c55e');
                 document.body.style.background = 'linear-gradient(135deg, #052e16, #166534)';
-            } else { // Default
-                root.style.setProperty('--bg', '#0a0a1a');
-                root.style.setProperty('--accent', '#7c3aed');
+                root.style.setProperty('--accent', '#22c55e');
+            } else {
                 document.body.style.background = 'linear-gradient(135deg, #0a0a1a, #1a1a2e)';
+                root.style.setProperty('--accent', '#7c3aed');
             }
         }
 
         function getRandomEmoji() {
             const roll = Math.random();
-            // Secret Kayn logic
             if (Object.keys(collection).length >= 25 && roll < 0.001) {
                 return secretKayn;
             }
-            // Normal pool...
-            if (roll < 0.45) return emojis.filter(e => e.rarity === 'common')[Math.floor(Math.random()*3)];
-            // ... (shortened for space)
             return emojis[Math.floor(Math.random() * emojis.length)];
         }
 
         function claimNow() {
             const now = Date.now();
-            if (now - lastClaim < 60000) return alert("⏳ Wait!");
-            
+            if (now - lastClaim < 60000) {
+                alert("⏳ Wait for the timer!");
+                return;
+            }
             const emoji = getRandomEmoji();
             if (!collection[emoji.name]) collection[emoji.name] = {...emoji, count: 0};
             collection[emoji.name].count++;
@@ -239,9 +250,8 @@
         function switchTab(n) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById('tab'+n).classList.add('active');
-            document.querySelectorAll('nav button').forEach((b,i) => {
-                b.classList.toggle('active', i===n);
-            });
+            document.querySelectorAll('nav button').forEach((b,i) => b.classList.toggle('active', i===n));
+            
             if (n === 1) buildGallery();
             if (n === 2) buildLeaderboard();
         }
@@ -249,270 +259,12 @@
         // Timer
         let timeLeft = 60;
         setInterval(() => {
-            timeLeft = timeLeft <= 0 ? 60 : timeLeft - 1;
-            document.getElementById('timer').textContent = `Next in: ${timeLeft}s`;
-            if (timeLeft === 0) claimNow();
-        }, 1000);
-
-        // Init
-        updateDisplay();
-        buildLeaderboard();
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emoji Miner ⏳</title>
-    <style>
-        :root {
-            --bg: #0a0a1a;
-            --accent: #7c3aed;
-        }
-        body {
-            font-family: system-ui, sans-serif;
-            background: var(--bg);
-            color: #fff;
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-        }
-        nav button {
-            padding: 12px 20px;
-            margin: 5px;
-            background: #1f1f2e;
-            border: none;
-            color: white;
-            border-radius: 12px;
-            cursor: pointer;
-        }
-        nav button.active { background: var(--accent); }
-
-        .tab { display: none; }
-        .tab.active { display: block; }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 20px;
-            max-width: 1000px;
-            margin: 30px auto;
-        }
-        .emoji-card {
-            background: #16213e;
-            border-radius: 20px;
-            padding: 20px;
-            font-size: 4rem;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-        }
-        .gallery-emoji {
-            filter: brightness(0.3) grayscale(1);
-            font-size: 3.5rem;
-        }
-
-        button.main {
-            padding: 14px 30px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-    <h1>Emoji Miner ⏳</h1>
-    
-    <nav>
-        <button onclick="switchTab(0)" class="active">Mine</button>
-        <button onclick="switchTab(1)">Gallery</button>
-        <button onclick="switchTab(2)">Leaderboard</button>
-        <button onclick="switchTab(3)">Themes</button>
-    </nav>
-
-    <!-- Mine Tab -->
-    <div id="tab0" class="tab active">
-        <div class="timer" id="timer">Next in: 60s</div>
-        <button class="main" onclick="claimNow()">Claim Early</button>
-        <button onclick="exportCollection()">Export</button>
-        <button onclick="saveToCloud()">Save Cloud</button>
-        <button onclick="shareCollection()">Share</button>
-        
-        <div class="stats">
-            <strong>Total:</strong> <span id="total">0</span> | 
-            <strong>Unique:</strong> <span id="unique">0</span>
-        </div>
-        <div class="grid" id="collection"></div>
-    </div>
-
-    <!-- Gallery Tab -->
-    <div id="tab1" class="tab">
-        <h2>Full Emoji Index</h2>
-        <p>All emojis (shown in black) + Drop Chance</p>
-        <div class="grid" id="gallery"></div>
-    </div>
-
-    <!-- Leaderboard Tab -->
-    <div id="tab2" class="tab">
-        <h2>🌍 Global Leaderboard</h2>
-        <div id="leaderboard"></div>
-    </div>
-
-    <!-- Themes Tab -->
-    <div id="tab3" class="tab">
-        <h2>Themes</h2>
-        <button onclick="setTheme(0)">Default</button>
-        <button onclick="setTheme(1)">Kayn (LoL)</button>
-        <button onclick="setTheme(2)">Marin</button>
-        <button onclick="setTheme(3)">Tren Twins</button>
-    </div>
-
-    <script>
-        // === EMOJIS (with secret Kayn) ===
-        let emojis = [
-            {emoji: "😀", name: "Grin", rarity: "common", chance: "45%"},
-            {emoji: "😂", name: "Laugh", rarity: "common", chance: "45%"},
-            {emoji: "❤️", name: "Heart", rarity: "common", chance: "45%"},
-            {emoji: "🔥", name: "Fire", rarity: "uncommon", chance: "30%"},
-            {emoji: "⭐", name: "Star", rarity: "uncommon", chance: "30%"},
-            {emoji: "🚀", name: "Rocket", rarity: "uncommon", chance: "30%"},
-            {emoji: "🌈", name: "Rainbow", rarity: "rare", chance: "15%"},
-            {emoji: "🦄", name: "Unicorn", rarity: "rare", chance: "15%"},
-            {emoji: "⚡", name: "Lightning", rarity: "epic", chance: "7%"},
-            {emoji: "👑", name: "Crown", rarity: "epic", chance: "7%"},
-            {emoji: "🐉", name: "Dragon", rarity: "legendary", chance: "2.5%"},
-            {emoji: "🌌", name: "Galaxy", rarity: "legendary", chance: "2.5%"},
-            {emoji: "🌸", name: "Sakura", rarity: "mythic", chance: "0.8%"},
-            {emoji: "🦋", name: "Butterfly", rarity: "mythic", chance: "0.8%"},
-            {emoji: "✨", name: "Divine Spark", rarity: "divine", chance: "0.3%"}
-        ];
-
-        // Secret Kayn Emoji
-        const secretKayn = {emoji: "🌑", name: "Shadow Kayn", rarity: "divine", chance: "0.1%"};
-
-        let collection = JSON.parse(localStorage.getItem('emojiCollection')) || {};
-        let lastClaim = parseInt(localStorage.getItem('lastClaim')) || 0;
-        let currentTheme = 0;
-
-        function getRarityClass(r) { return r.toLowerCase(); }
-
-        function saveCollection() {
-            localStorage.setItem('emojiCollection', JSON.stringify(collection));
-            localStorage.setItem('lastClaim', Date.now());
-        }
-
-        function updateDisplay() {
-            // Collection grid (normal colored)
-            const grid = document.getElementById('collection');
-            grid.innerHTML = '';
-            Object.values(collection).sort((a,b) => {
-                const order = ['divine','mythic','legendary','epic','rare','uncommon','common'];
-                return order.indexOf(a.rarity) - order.indexOf(b.rarity);
-            }).forEach(item => {
-                const div = document.createElement('div');
-                div.className = `emoji-card ${getRarityClass(item.rarity)}`;
-                div.innerHTML = `${item.emoji}<div class="rarity">${item.rarity}</div><small>x${item.count}</small>`;
-                grid.appendChild(div);
-            });
-
-            document.getElementById('total').textContent = Object.values(collection).reduce((a,i)=>a+i.count,0);
-            document.getElementById('unique').textContent = Object.keys(collection).length;
-        }
-
-        function buildGallery() {
-            const g = document.getElementById('gallery');
-            g.innerHTML = '';
-            [...emojis, secretKayn].forEach(e => {
-                const div = document.createElement('div');
-                div.className = 'emoji-card';
-                div.innerHTML = `
-                    <div class="gallery-emoji">${e.emoji}</div>
-                    <div class="rarity">${e.rarity.toUpperCase()}</div>
-                    <small>${e.chance} chance</small>
-                `;
-                g.appendChild(div);
-            });
-        }
-
-        function buildLeaderboard() {
-            const lb = document.getElementById('leaderboard');
-            const yourUnique = Object.keys(collection).length;
-            lb.innerHTML = `
-                <ol style="font-size:1.3rem;">
-                    <li>1. TrenGod69 — 87 unique</li>
-                    <li>2. MarinCollector — 64 unique</li>
-                    <li>3. ShadowKaynMain — 51 unique</li>
-                    <li style="color:#7c3aed"><strong>→ You — ${yourUnique} unique</strong></li>
-                    <li>5. AnimeFan22 — 42 unique</li>
-                </ol>
-            `;
-        }
-
-        function setTheme(n) {
-            currentTheme = n;
-            const root = document.documentElement;
-            if (n === 1) { // Kayn
-                root.style.setProperty('--bg', '#0f0a1a');
-                root.style.setProperty('--accent', '#9f1239');
-                document.body.style.background = 'linear-gradient(135deg, #1a0f2e, #4c1d95)';
-            } else if (n === 2) { // Marin
-                root.style.setProperty('--bg', '#1a0f1a');
-                root.style.setProperty('--accent', '#ec4899');
-                document.body.style.background = 'linear-gradient(135deg, #fce7f3, #831843)';
-            } else if (n === 3) { // Tren Twins
-                root.style.setProperty('--bg', '#0a1a0a');
-                root.style.setProperty('--accent', '#22c55e');
-                document.body.style.background = 'linear-gradient(135deg, #052e16, #166534)';
-            } else { // Default
-                root.style.setProperty('--bg', '#0a0a1a');
-                root.style.setProperty('--accent', '#7c3aed');
-                document.body.style.background = 'linear-gradient(135deg, #0a0a1a, #1a1a2e)';
+            timeLeft--;
+            if (timeLeft <= 0) {
+                claimNow();
+                timeLeft = 60;
             }
-        }
-
-        function getRandomEmoji() {
-            const roll = Math.random();
-            // Secret Kayn logic
-            if (Object.keys(collection).length >= 25 && roll < 0.001) {
-                return secretKayn;
-            }
-            // Normal pool...
-            if (roll < 0.45) return emojis.filter(e => e.rarity === 'common')[Math.floor(Math.random()*3)];
-            // ... (shortened for space)
-            return emojis[Math.floor(Math.random() * emojis.length)];
-        }
-
-        function claimNow() {
-            const now = Date.now();
-            if (now - lastClaim < 60000) return alert("⏳ Wait!");
-            
-            const emoji = getRandomEmoji();
-            if (!collection[emoji.name]) collection[emoji.name] = {...emoji, count: 0};
-            collection[emoji.name].count++;
-            
-            lastClaim = now;
-            saveCollection();
-            updateDisplay();
-            buildLeaderboard();
-        }
-
-        function switchTab(n) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('tab'+n).classList.add('active');
-            document.querySelectorAll('nav button').forEach((b,i) => {
-                b.classList.toggle('active', i===n);
-            });
-            if (n === 1) buildGallery();
-            if (n === 2) buildLeaderboard();
-        }
-
-        // Timer
-        let timeLeft = 60;
-        setInterval(() => {
-            timeLeft = timeLeft <= 0 ? 60 : timeLeft - 1;
             document.getElementById('timer').textContent = `Next in: ${timeLeft}s`;
-            if (timeLeft === 0) claimNow();
         }, 1000);
 
         // Init
