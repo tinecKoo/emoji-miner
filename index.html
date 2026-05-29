@@ -20,16 +20,20 @@
         h1 { margin: 10px 0 5px; font-size: 2.8rem; text-shadow: 0 0 20px var(--accent); }
         nav {
             margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
         }
         nav button {
-            padding: 12px 20px;
-            margin: 5px;
+            padding: 12px 18px;
             background: #1f1f2e;
             border: none;
             color: white;
             border-radius: 12px;
             cursor: pointer;
             font-weight: bold;
+            font-size: 1rem;
         }
         nav button.active {
             background: var(--accent);
@@ -38,26 +42,27 @@
         .tab.active { display: block; }
 
         .timer {
-            font-size: 3rem;
+            font-size: 2.8rem;
             font-weight: bold;
             color: #ffd700;
             margin: 20px 0;
         }
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
             gap: 16px;
             max-width: 1100px;
-            margin: 30px auto;
+            margin: 25px auto;
         }
         .emoji-card {
             background: #16213e;
             border-radius: 18px;
             padding: 12px 8px;
-            font-size: 3.5rem;
+            font-size: 3.6rem;
             box-shadow: 0 8px 25px rgba(0,0,0,0.4);
             transition: 0.3s;
             text-align: center;
+            cursor: pointer;
         }
         .emoji-card:hover { transform: scale(1.08); }
         
@@ -85,8 +90,17 @@
         }
 
         .gallery-info {
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             line-height: 1.1;
+        }
+
+        /* Equipment Styles */
+        .equip-slot {
+            border: 2px dashed #555;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 12px;
+            min-height: 120px;
         }
     </style>
 </head>
@@ -98,6 +112,7 @@
         <button onclick="switchTab(1)">Gallery</button>
         <button onclick="switchTab(2)">Leaderboard</button>
         <button onclick="switchTab(3)">Themes</button>
+        <button onclick="switchTab(4)">Equipment</button>
     </nav>
 
     <!-- Mine Tab -->
@@ -109,7 +124,7 @@
         <button onclick="shareCollection()">Share</button>
         
         <div class="stats">
-            <strong>Total Collected:</strong> <span id="total">0</span> | 
+            <strong>Total:</strong> <span id="total">0</span> | 
             <strong>Unique:</strong> <span id="unique">0</span>
         </div>
         <div class="grid" id="collection"></div>
@@ -125,16 +140,32 @@
     <!-- Leaderboard Tab -->
     <div id="tab2" class="tab">
         <h2>🌍 Global Leaderboard</h2>
-        <div id="leaderboard" style="font-size:1.2rem; max-width:600px; margin:30px auto;"></div>
+        <div id="leaderboard" style="font-size:1.3rem; max-width:600px; margin:30px auto;"></div>
     </div>
 
     <!-- Themes Tab -->
     <div id="tab3" class="tab">
         <h2>🎨 Choose Theme</h2>
         <button onclick="setTheme(0)">Default</button>
-        <button onclick="setTheme(1)">Kayn (League of Legends)</button>
-        <button onclick="setTheme(2)">Marin (My Dress-Up Darling)</button>
+        <button onclick="setTheme(1)">Kayn (LoL)</button>
+        <button onclick="setTheme(2)">Marin</button>
         <button onclick="setTheme(3)">Tren Twins</button>
+    </div>
+
+    <!-- Equipment Tab -->
+    <div id="tab4" class="tab">
+        <h2>⚔️ Equipment</h2>
+        <p>Click an emoji to equip items</p>
+        <div class="grid" id="equipment-grid"></div>
+        
+        <div style="margin-top:30px;">
+            <h3>Available Equipment</h3>
+            <div style="display:flex; flex-wrap:wrap; gap:15px; justify-content:center;">
+                <div class="emoji-card" onclick="equipItem(this)">🗡️ Sword (+Luck)</div>
+                <div class="emoji-card" onclick="equipItem(this)">🛡️ Armor (+Points)</div>
+                <div class="emoji-card" onclick="equipItem(this)">🔮 Amulet (+Rare)</div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -195,7 +226,7 @@
                     <div class="gallery-emoji">${e.emoji}</div>
                     <div class="gallery-info">
                         <strong>${e.rarity.toUpperCase()}</strong><br>
-                        <small>${e.chance} chance</small>
+                        ${e.chance} chance
                     </div>
                 `;
                 g.appendChild(div);
@@ -216,15 +247,10 @@
         }
 
         function setTheme(n) {
-            if (n === 1) { // Kayn
-                document.body.style.background = 'linear-gradient(135deg, #1e0a2e, #4c1d95)';
-            } else if (n === 2) { // Marin
-                document.body.style.background = 'linear-gradient(135deg, #fce7f3, #831843)';
-            } else if (n === 3) { // Tren Twins
-                document.body.style.background = 'linear-gradient(135deg, #052e16, #166534)';
-            } else {
-                document.body.style.background = 'linear-gradient(135deg, #0a0a1a, #1a1a2e)';
-            }
+            if (n === 1) document.body.style.background = 'linear-gradient(135deg, #1e0a2e, #4c1d95)';
+            else if (n === 2) document.body.style.background = 'linear-gradient(135deg, #fce7f3, #831843)';
+            else if (n === 3) document.body.style.background = 'linear-gradient(135deg, #052e16, #166534)';
+            else document.body.style.background = 'linear-gradient(135deg, #0a0a1a, #1a1a2e)';
         }
 
         function getRandomEmoji() {
@@ -254,6 +280,23 @@
             
             if (n === 1) buildGallery();
             if (n === 2) buildLeaderboard();
+            if (n === 4) buildEquipment();
+        }
+
+        // Simple Equipment System
+        function buildEquipment() {
+            const grid = document.getElementById('equipment-grid');
+            grid.innerHTML = '';
+            Object.values(collection).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'emoji-card';
+                div.innerHTML = `${item.emoji}<br><small>${item.rarity}</small>`;
+                grid.appendChild(div);
+            });
+        }
+
+        function equipItem(el) {
+            alert("Equipped! (More equipment features coming soon)");
         }
 
         // Timer
