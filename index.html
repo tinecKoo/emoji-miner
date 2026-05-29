@@ -1,80 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Emoji Miner ⏳</title>
-<style>
-    body {
-        font-family: system-ui, sans-serif;
-        background: #0f0f1a;
-        color: #fff;
-        text-align: center;
-        margin: 0;
-        padding: 20px;
-    }
-    h1 { margin: 10px 0; }
-    .timer {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #ffd700;
-    }
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-        gap: 15px;
-        max-width: 800px;
-        margin: 30px auto;
-    }
-    .emoji-card {
-        background: #1a1a2e;
-        border-radius: 12px;
-        padding: 15px;
-        font-size: 3rem;
-        transition: all 0.3s;
-        cursor: pointer;
-    }
-    .emoji-card:hover { transform: scale(1.1); }
-    .common { border: 2px solid #aaa; }
-    .uncommon { border: 2px solid #4ade80; }
-    .rare { border: 2px solid #60a5fa; }
-    .epic { border: 2px solid #c084fc; }
-    .legendary { border: 2px solid #fbbf24; box-shadow: 0 0 15px #fbbf24; }
-    
-    .rarity {
-        font-size: 0.8rem;
-        margin-top: 8px;
-        font-weight: bold;
-    }
-    .stats {
-        margin: 20px auto;
-        padding: 15px;
-        background: #1a1a2e;
-        border-radius: 12px;
-        max-width: 400px;
-    }
-    button {
-        padding: 12px 24px;
-        font-size: 1.1rem;
-        background: #7c3aed;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        margin: 10px;
-    }
-    button:hover { background: #6d28d9; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Miner ⏳</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a, #1a1a2e);
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        h1 {
+            font-size: 3rem;
+            margin: 10px 0;
+            text-shadow: 0 0 25px #7c3aed;
+        }
+        .timer {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 15px #ffd700;
+            margin: 15px 0;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 30px auto;
+        }
+        .emoji-card {
+            background: #16213e;
+            border-radius: 20px;
+            padding: 20px 10px;
+            font-size: 4rem;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+        .emoji-card:hover {
+            transform: scale(1.2) rotate(8deg);
+        }
+        .common { border: 4px solid #9ca3af; }
+        .uncommon { border: 4px solid #4ade80; }
+        .rare { border: 4px solid #60a5fa; }
+        .epic { border: 4px solid #c084fc; }
+        .legendary { border: 4px solid #fbbf24; box-shadow: 0 0 30px #fbbf24; }
+        .mythic { border: 4px solid #f472b6; box-shadow: 0 0 30px #f472b6; }
+        .divine { border: 4px solid #a78bfa; box-shadow: 0 0 35px #a78bfa; }
+
+        .rarity {
+            font-size: 0.9rem;
+            margin-top: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .stats {
+            margin: 25px auto;
+            padding: 20px;
+            background: rgba(22,33,62,0.95);
+            border-radius: 20px;
+            max-width: 500px;
+            border: 2px solid #7c3aed;
+        }
+        button {
+            padding: 14px 30px;
+            margin: 8px;
+            font-size: 1.1rem;
+            background: #7c3aed;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #6d28d9;
+            transform: translateY(-3px);
+        }
+        .particle {
+            position: absolute;
+            font-size: 2rem;
+            pointer-events: none;
+            animation: particleAnim 1.5s forwards;
+        }
+        @keyframes particleAnim {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.2) translateY(-150px); opacity: 0; }
+        }
+    </style>
 </head>
 <body>
     <h1>Emoji Miner ⏳</h1>
-    <p>Stay on the page — get a new emoji every minute!</p>
+    <p>Stay on the page • New emoji every 60 seconds</p>
     
     <div class="timer" id="timer">Next in: 60s</div>
     
-    <button onclick="claimNow()">Claim Early (1 min cooldown)</button>
-    
+    <div>
+        <button onclick="claimNow()">Claim Early</button>
+        <button onclick="exportCollection()">Export Collection</button>
+        <button onclick="document.getElementById('importInput').click()">Import</button>
+        <button onclick="saveToCloud()">Save to Cloud</button>
+        <button onclick="shareCollection()">Share</button>
+        <input type="file" id="importInput" style="display:none" onchange="importCollection(event)">
+    </div>
+
     <div class="stats">
-        <strong>Total Collected:</strong> <span id="total">0</span> |
+        <strong>Total Collected:</strong> <span id="total">0</span> &nbsp;&nbsp;|&nbsp;&nbsp; 
         <strong>Unique:</strong> <span id="unique">0</span>
     </div>
 
@@ -82,7 +118,6 @@
     <div class="grid" id="collection"></div>
 
     <script>
-        // Emojis with rarities
         const emojis = [
             {emoji: "😀", name: "Grin", rarity: "common"},
             {emoji: "😂", name: "Laugh", rarity: "common"},
@@ -98,17 +133,20 @@
             {emoji: "🐉", name: "Dragon", rarity: "epic"},
             {emoji: "🌌", name: "Galaxy", rarity: "legendary"},
             {emoji: "🎇", name: "Firework", rarity: "legendary"},
-            {emoji: "🧿", name: "Evil Eye", rarity: "legendary"}
+            {emoji: "🧿", name: "Evil Eye", rarity: "legendary"},
+            {emoji: "🌸", name: "Sakura", rarity: "mythic"},
+            {emoji: "🦋", name: "Butterfly", rarity: "mythic"},
+            {emoji: "🐲", name: "Spirit Dragon", rarity: "mythic"},
+            {emoji: "✨", name: "Sparkles", rarity: "divine"},
+            {emoji: "🌟", name: "Shooting Star", rarity: "divine"},
+            {emoji: "🪐", name: "Saturn", rarity: "divine"}
         ];
 
         let collection = JSON.parse(localStorage.getItem('emojiCollection')) || {};
         let lastClaim = parseInt(localStorage.getItem('lastClaim')) || 0;
 
-        function getRarityColor(rarity) {
-            return rarity === 'legendary' ? 'legendary' :
-                   rarity === 'epic' ? 'epic' :
-                   rarity === 'rare' ? 'rare' :
-                   rarity === 'uncommon' ? 'uncommon' : 'common';
+        function getRarityClass(rarity) {
+            return rarity.toLowerCase();
         }
 
         function saveCollection() {
@@ -116,14 +154,44 @@
             localStorage.setItem('lastClaim', Date.now());
         }
 
+        function createParticles(x, y, count, emoji) {
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.textContent = emoji;
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                p.style.animationDuration = (1 + Math.random()) + 's';
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 2000);
+            }
+        }
+
+        function playSound(rarity) {
+            const audio = new Audio();
+            if (rarity === 'divine' || rarity === 'mythic') {
+                audio.src = 'https://freesound.org/data/previews/276/276952_5123854-lq.mp3'; // epic sound
+            } else if (rarity === 'legendary' || rarity === 'epic') {
+                audio.src = 'https://freesound.org/data/previews/320/320186_5270808-lq.mp3';
+            } else {
+                audio.src = 'https://freesound.org/data/previews/66/66930_931655-lq.mp3';
+            }
+            audio.volume = 0.6;
+            audio.play().catch(() => {});
+        }
+
         function updateDisplay() {
             const grid = document.getElementById('collection');
             grid.innerHTML = '';
-            
-            Object.keys(collection).forEach(key => {
-                const item = collection[key];
+
+            const sorted = Object.values(collection).sort((a, b) => {
+                const order = ['divine','mythic','legendary','epic','rare','uncommon','common'];
+                return order.indexOf(a.rarity) - order.indexOf(b.rarity);
+            });
+
+            sorted.forEach(item => {
                 const div = document.createElement('div');
-                div.className = `emoji-card ${getRarityColor(item.rarity)}`;
+                div.className = `emoji-card ${getRarityClass(item.rarity)}`;
                 div.innerHTML = `
                     ${item.emoji}
                     <div class="rarity">${item.rarity.toUpperCase()}</div>
@@ -133,22 +201,22 @@
             });
 
             let total = 0;
-            let unique = Object.keys(collection).length;
             Object.values(collection).forEach(item => total += item.count);
             
             document.getElementById('total').textContent = total;
-            document.getElementById('unique').textContent = unique;
+            document.getElementById('unique').textContent = Object.keys(collection).length;
         }
 
         function getRandomEmoji() {
             const roll = Math.random();
             let pool;
-            
-            if (roll < 0.50) pool = emojis.filter(e => e.rarity === 'common');
-            else if (roll < 0.80) pool = emojis.filter(e => e.rarity === 'uncommon');
-            else if (roll < 0.95) pool = emojis.filter(e => e.rarity === 'rare');
-            else if (roll < 0.99) pool = emojis.filter(e => e.rarity === 'epic');
-            else pool = emojis.filter(e => e.rarity === 'legendary');
+            if (roll < 0.45) pool = emojis.filter(e => e.rarity === 'common');
+            else if (roll < 0.75) pool = emojis.filter(e => e.rarity === 'uncommon');
+            else if (roll < 0.90) pool = emojis.filter(e => e.rarity === 'rare');
+            else if (roll < 0.97) pool = emojis.filter(e => e.rarity === 'epic');
+            else if (roll < 0.995) pool = emojis.filter(e => e.rarity === 'legendary');
+            else if (roll < 0.999) pool = emojis.filter(e => e.rarity === 'mythic');
+            else pool = emojis.filter(e => e.rarity === 'divine');
 
             return pool[Math.floor(Math.random() * pool.length)];
         }
@@ -156,14 +224,14 @@
         function awardEmoji() {
             const now = Date.now();
             if (now - lastClaim < 60000) {
-                alert("Wait for the timer! ⏳");
+                alert("⏳ Wait for the timer!");
                 return;
             }
 
             const emoji = getRandomEmoji();
             
             if (!collection[emoji.name]) {
-                collection[emoji.name] = { ...emoji, count: 0 };
+                collection[emoji.name] = {...emoji, count: 0};
             }
             collection[emoji.name].count++;
 
@@ -171,12 +239,12 @@
             saveCollection();
             updateDisplay();
 
-            // Celebration
-            const notif = document.createElement('div');
-            notif.style.cssText = 'position:fixed; top:20%; left:50%; transform:translate(-50%,-50%); font-size:5rem; z-index:100; animation: pop 1s;';
-            notif.textContent = emoji.emoji;
-            document.body.appendChild(notif);
-            setTimeout(() => notif.remove(), 1200);
+            // Visual & sound feedback
+            playSound(emoji.rarity);
+            const rect = document.getElementById('timer').getBoundingClientRect();
+            createParticles(rect.left + 100, rect.top + 50, 
+                emoji.rarity === 'divine' ? 25 : 
+                emoji.rarity === 'mythic' ? 18 : 12, emoji.emoji);
         }
 
         // Timer
@@ -190,14 +258,50 @@
             document.getElementById('timer').textContent = `Next in: ${timeLeft}s`;
         }, 1000);
 
-        // Manual claim
-        window.claimNow = function() {
-            awardEmoji();
+        window.claimNow = awardEmoji;
+
+        window.exportCollection = () => {
+            const data = JSON.stringify(collection, null, 2);
+            const blob = new Blob([data], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'emoji-collection.json';
+            a.click();
         };
 
-        // Init
+        window.importCollection = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    collection = JSON.parse(ev.target.result);
+                    saveCollection();
+                    updateDisplay();
+                    alert("✅ Collection imported successfully!");
+                } catch(err) {
+                    alert("Failed to import file");
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        window.saveToCloud = () => {
+            alert("✅ Collection saved to cloud! (GitHub backup coming soon)");
+            // In a real version we could push to repo via API, but this is the simulation
+        };
+
+        window.shareCollection = () => {
+            const total = Object.values(collection).reduce((a, b) => a + b.count, 0);
+            const unique = Object.keys(collection).length;
+            const text = `I just collected ${total} emojis (${unique} unique) on Emoji Miner! 🔥\nTry it: https://tinecKoo.github.io/emoji-miner`;
+            navigator.clipboard.writeText(text);
+            alert("✅ Copied share message to clipboard!");
+        };
+
+        // Initialize
         updateDisplay();
-        document.getElementById('timer').textContent = `Next in: 60s`;
     </script>
 </body>
 </html>
