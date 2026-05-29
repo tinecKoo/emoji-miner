@@ -3,191 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emoji Miner ⏳</title>
+    <title>Emoji Miner v1.2</title>
     <style>
-        :root { --bg: #0a0a1a; --accent: #7c3aed; }
         body {
             font-family: system-ui, sans-serif;
-            background: var(--bg);
+            background: #0a0a1a;
             color: #fff;
             margin: 0;
             padding: 20px;
             min-height: 100vh;
         }
-        h1 { margin: 10px 0; font-size: 2.8rem; text-shadow: 0 0 20px var(--accent); }
+        h1 { font-size: 2.8rem; text-align: center; }
         nav {
+            text-align: center;
             margin: 20px 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
         }
         nav button {
-            padding: 12px 18px;
+            padding: 10px 16px;
+            margin: 5px;
             background: #1f1f2e;
             border: none;
             color: white;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
-            font-weight: bold;
         }
-        nav button.active { background: var(--accent); }
         .tab { display: none; }
         .tab.active { display: block; }
-
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 15px;
             max-width: 1100px;
-            margin: 25px auto;
+            margin: 20px auto;
         }
         .emoji-card {
             background: #16213e;
-            border-radius: 18px;
-            padding: 12px 8px;
+            border-radius: 16px;
+            padding: 15px;
             font-size: 3.5rem;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
             text-align: center;
             cursor: pointer;
         }
-        .gallery-emoji { filter: brightness(0.25) grayscale(1); font-size: 3.2rem; }
-
-        .battle-log { 
-            background: #111; 
-            padding: 15px; 
-            margin: 15px auto; 
-            max-width: 600px; 
+        .battle-log {
+            background: #111827;
+            padding: 15px;
             border-radius: 12px;
             min-height: 180px;
+            margin: 20px auto;
+            max-width: 600px;
             text-align: left;
         }
     </style>
 </head>
 <body>
-    <h1>Emoji Miner ⏳</h1>
-    
+    <h1>Emoji Miner - VERSION 1.2</h1>
     <nav>
         <button onclick="switchTab(0)" class="active">Mine</button>
         <button onclick="switchTab(1)">Gallery</button>
-        <button onclick="switchTab(2)">Leaderboard</button>
-        <button onclick="switchTab(3)">Themes</button>
         <button onclick="switchTab(4)">Equipment</button>
         <button onclick="switchTab(5)">Dungeon</button>
     </nav>
 
     <!-- Mine Tab -->
     <div id="tab0" class="tab active">
-        <div class="timer" id="timer">Next in: 60s</div>
-        <button class="main" onclick="claimNow()">Claim Early</button>
-        <button onclick="exportCollection()">Export</button>
-        <button onclick="saveToCloud()">Save Cloud</button>
-        <button onclick="shareCollection()">Share</button>
-        
-        <div class="stats">
-            <strong>Total:</strong> <span id="total">0</span> | 
-            <strong>Unique:</strong> <span id="unique">0</span>
+        <p style="text-align:center;">Next emoji in: <span id="timer">60s</span></p>
+        <div style="text-align:center;">
+            <button onclick="claimNow()" style="padding:12px 30px; font-size:1.1rem;">Claim Early</button>
         </div>
         <div class="grid" id="collection"></div>
     </div>
 
     <!-- Gallery Tab -->
     <div id="tab1" class="tab">
-        <h2>📖 Full Emoji Index</h2>
+        <h2>Full Emoji Index</h2>
         <div class="grid" id="gallery"></div>
-    </div>
-
-    <!-- Leaderboard Tab -->
-    <div id="tab2" class="tab">
-        <h2>🌍 Global Leaderboard</h2>
-        <div id="leaderboard"></div>
-    </div>
-
-    <!-- Themes Tab -->
-    <div id="tab3" class="tab">
-        <h2>🎨 Themes</h2>
-        <button onclick="setTheme(0)">Default</button>
-        <button onclick="setTheme(1)">Kayn</button>
-        <button onclick="setTheme(2)">Marin</button>
-        <button onclick="setTheme(3)">Tren Twins</button>
     </div>
 
     <!-- Equipment Tab -->
     <div id="tab4" class="tab">
-        <h2>⚔️ Equipment</h2>
-        <h3>Swords</h3>
-        <div class="grid" id="swords-grid"></div>
+        <h2>⚔️ Equipment - Swords</h2>
+        <div class="grid" id="swords"></div>
     </div>
 
     <!-- Dungeon Tab -->
     <div id="tab5" class="tab">
         <h2>🏰 Dungeon - Goblin Lair</h2>
-        <p>Select your fighter and battle!</p>
-        
-        <div style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap;" id="battle-area">
-            <!-- Battle UI populated by JS -->
-        </div>
-
+        <div id="battle-area"></div>
         <div class="battle-log" id="battle-log"></div>
-        <button onclick="startBattle()" style="padding:12px 30px; font-size:1.1rem;">Start New Battle</button>
+        <button onclick="startBattle()" style="padding:12px 30px;">Start New Battle</button>
     </div>
 
     <script>
-        // === DATA ===
-        let emojis = [ /* same list as before */ ];
-        const secretKayn = {emoji: "🌑", name: "Shadow Kayn", rarity: "divine", chance: "0.1%"};
-
         let collection = JSON.parse(localStorage.getItem('emojiCollection')) || {};
-        let lastClaim = parseInt(localStorage.getItem('lastClaim')) || 0;
 
         // Swords
         const swords = [
             {name: "Wooden Sword", power: 5, emoji: "🪵"},
-            {name: "Stone Sword", power: 10, emoji: "🪨"},
-            {name: "Iron Sword", power: 18, emoji: "⚔️"},
-            {name: "Diamond Sword", power: 30, emoji: "💎"},
-            {name: "Crystal Sword", power: 45, emoji: "🔮"}
+            {name: "Stone Sword", power: 12, emoji: "🪨"},
+            {name: "Iron Sword", power: 20, emoji: "⚔️"},
+            {name: "Diamond Sword", power: 35, emoji: "💎"},
+            {name: "Crystal Sword", power: 50, emoji: "🔮"}
         ];
 
-        // Simple moves for emojis
-        function getMoves(emojiName) {
-            const moves = {
-                "Dragon": ["Fire Breath", "Tail Whip", "Roar"],
-                "Shadow Kayn": ["Shadow Slash", "Umbra Dance", "Reap"],
-                "Unicorn": ["Horn Strike", "Rainbow Beam"],
-                default: ["Attack", "Heavy Hit", "Special"]
-            };
-            return moves[emojiName] || moves.default;
+        function updateCollection() {
+            const grid = document.getElementById('collection');
+            grid.innerHTML = '';
+            Object.values(collection).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'emoji-card';
+                div.innerHTML = item.emoji;
+                grid.appendChild(div);
+            });
         }
 
-        // === BASIC FUNCTIONS ===
-        function saveCollection() {
-            localStorage.setItem('emojiCollection', JSON.stringify(collection));
-            localStorage.setItem('lastClaim', Date.now());
+        function buildGallery() {
+            const g = document.getElementById('gallery');
+            g.innerHTML = '';
+            // Add your emojis here...
+            const sample = ["😀","😂","❤️","🔥","⭐","🚀","🌈","🦄","⚡","👑","🐉"];
+            sample.forEach(e => {
+                const div = document.createElement('div');
+                div.className = 'emoji-card';
+                div.innerHTML = e;
+                g.appendChild(div);
+            });
         }
 
-        function updateDisplay() { /* same as before */ }
-        function buildGallery() { /* same */ }
-        function buildLeaderboard() { /* same */ }
-        function setTheme(n) { /* same */ }
-
-        function getRandomEmoji() { /* same */ }
-
-        function claimNow() { /* same */ }
-
-        function switchTab(n) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('tab'+n).classList.add('active');
-            document.querySelectorAll('nav button').forEach((b,i) => b.classList.toggle('active', i===n));
-            
-            if (n === 1) buildGallery();
-            if (n === 2) buildLeaderboard();
-            if (n === 4) buildEquipment();
-            if (n === 5) initBattleUI();
-        }
-
-        function buildEquipment() {
-            const grid = document.getElementById('swords-grid');
+        function buildSwords() {
+            const grid = document.getElementById('swords');
             grid.innerHTML = '';
             swords.forEach(s => {
                 const div = document.createElement('div');
@@ -197,103 +140,42 @@
             });
         }
 
-        // === BATTLE SYSTEM ===
-        let playerEmoji = null;
-        let enemyHP = 80;
-        let playerHP = 100;
-
-        function initBattleUI() {
-            const area = document.getElementById('battle-area');
-            let html = `<div style="text-align:center;">
-                <h3>Your Fighter</h3>
-                <div class="grid" id="fighter-select"></div>
-            </div>`;
-            area.innerHTML = html;
-
-            const selectGrid = document.getElementById('fighter-select');
-            Object.values(collection).forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'emoji-card';
-                div.innerHTML = item.emoji;
-                div.onclick = () => startPlayerBattle(item);
-                selectGrid.appendChild(div);
-            });
+        function switchTab(n) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab'+n).classList.add('active');
+            if (n === 1) buildGallery();
+            if (n === 4) buildSwords();
+            if (n === 5) startBattle();
         }
 
-        function startPlayerBattle(emoji) {
-            playerEmoji = emoji;
-            playerHP = 100;
-            enemyHP = 80;
-            document.getElementById('battle-log').innerHTML = `You chose ${emoji.emoji} ${emoji.name}!`;
-            
-            const area = document.getElementById('battle-area');
-            area.innerHTML = `
-                <div style="display:flex; gap:40px; align-items:center; justify-content:center; flex-wrap:wrap;">
-                    <div style="text-align:center;">
-                        <h3>You: ${emoji.emoji}</h3>
-                        <div>HP: <span id="player-hp">${playerHP}</span></div>
-                    </div>
-                    <div style="font-size:4rem;">VS</div>
-                    <div style="text-align:center;">
-                        <h3>Goblin 👹</h3>
-                        <div>HP: <span id="enemy-hp">${enemyHP}</span></div>
-                    </div>
-                </div>
-                <div style="margin-top:20px;">
-                    ${getMoves(emoji.name).map(move => 
-                        `<button onclick="useMove('${move}')" style="margin:5px; padding:10px 20px;">${move}</button>`
-                    ).join('')}
-                </div>
-            `;
-        }
-
-        function useMove(move) {
-            if (!playerEmoji) return;
-            
-            const log = document.getElementById('battle-log');
-            const damage = Math.floor(Math.random() * 18) + 12;
-            enemyHP = Math.max(0, enemyHP - damage);
-            
-            log.innerHTML += `<br>You used ${move}! Dealt ${damage} damage.`;
-
-            document.getElementById('enemy-hp').textContent = enemyHP;
-
-            if (enemyHP <= 0) {
-                log.innerHTML += `<br><strong>🎉 You defeated the Goblin!</strong>`;
-                return;
-            }
-
-            // Enemy attack
-            setTimeout(() => {
-                const enemyDmg = Math.floor(Math.random() * 15) + 8;
-                playerHP = Math.max(0, playerHP - enemyDmg);
-                log.innerHTML += `<br>Goblin attacked! You took ${enemyDmg} damage.`;
-                document.getElementById('player-hp').textContent = playerHP;
-
-                if (playerHP <= 0) {
-                    log.innerHTML += `<br><strong>💀 You were defeated...</strong>`;
-                }
-            }, 800);
+        function claimNow() {
+            alert("New emoji claimed! (Demo)");
         }
 
         function startBattle() {
-            initBattleUI();
+            const area = document.getElementById('battle-area');
+            area.innerHTML = `
+                <h3>Fight the Goblin 👹</h3>
+                <p>Choose your emoji to battle (click one from Mine tab first)</p>
+                <button onclick="battleTurn()">Attack!</button>
+            `;
+            document.getElementById('battle-log').innerHTML = "Battle started!";
+        }
+
+        function battleTurn() {
+            document.getElementById('battle-log').innerHTML += "<br>You attacked the Goblin!";
         }
 
         // Timer
-        let timeLeft = 60;
+        let time = 60;
         setInterval(() => {
-            timeLeft--;
-            if (timeLeft <= 0) {
-                claimNow();
-                timeLeft = 60;
-            }
-            document.getElementById('timer').textContent = `Next in: ${timeLeft}s`;
+            time--;
+            if (time <= 0) time = 60;
+            document.getElementById('timer').textContent = time + "s";
         }, 1000);
 
         // Init
-        updateDisplay();
-        buildLeaderboard();
+        updateCollection();
     </script>
 </body>
 </html>
