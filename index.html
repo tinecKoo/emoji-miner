@@ -46,23 +46,27 @@
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 20px;
+            gap: 18px;
             max-width: 1100px;
             margin: 30px auto;
         }
         .emoji-card {
             background: #16213e;
-            border-radius: 20px;
-            padding: 20px 10px;
-            font-size: 4rem;
+            border-radius: 18px;
+            padding: 15px 8px;
+            font-size: 3.8rem;
             box-shadow: 0 8px 25px rgba(0,0,0,0.4);
             transition: 0.3s;
+            text-align: center;
         }
-        .emoji-card:hover { transform: scale(1.1); }
+        .emoji-card:hover { transform: scale(1.08); }
+        
         .gallery-emoji {
             filter: brightness(0.25) grayscale(1);
-            font-size: 3.8rem;
+            font-size: 3.5rem;
+            margin-bottom: 8px;
         }
+        
         .stats {
             margin: 20px auto;
             padding: 15px;
@@ -78,6 +82,12 @@
             border: none;
             border-radius: 12px;
             cursor: pointer;
+        }
+
+        /* Gallery text fix */
+        .gallery-info {
+            font-size: 0.85rem;
+            line-height: 1.2;
         }
     </style>
 </head>
@@ -151,7 +161,6 @@
 
         let collection = JSON.parse(localStorage.getItem('emojiCollection')) || {};
         let lastClaim = parseInt(localStorage.getItem('lastClaim')) || 0;
-        let currentTheme = 0;
 
         function saveCollection() {
             localStorage.setItem('emojiCollection', JSON.stringify(collection));
@@ -168,7 +177,7 @@
             }).forEach(item => {
                 const div = document.createElement('div');
                 div.className = `emoji-card ${item.rarity}`;
-                div.innerHTML = `${item.emoji}<div style="font-size:0.9rem;margin-top:8px">${item.rarity.toUpperCase()}</div><small>x${item.count}</small>`;
+                div.innerHTML = `${item.emoji}<div style="font-size:0.85rem;margin-top:6px">${item.rarity.toUpperCase()}</div><small>x${item.count}</small>`;
                 grid.appendChild(div);
             });
 
@@ -185,8 +194,10 @@
                 div.className = 'emoji-card';
                 div.innerHTML = `
                     <div class="gallery-emoji">${e.emoji}</div>
-                    <div style="font-size:1rem;margin:8px 0">${e.rarity.toUpperCase()}</div>
-                    <small>${e.chance} chance</small>
+                    <div class="gallery-info">
+                        <strong>${e.rarity.toUpperCase()}</strong><br>
+                        <small>${e.chance} chance</small>
+                    </div>
                 `;
                 g.appendChild(div);
             });
@@ -206,37 +217,27 @@
         }
 
         function setTheme(n) {
-            currentTheme = n;
-            const root = document.documentElement;
             if (n === 1) { // Kayn
                 document.body.style.background = 'linear-gradient(135deg, #1e0a2e, #4c1d95)';
-                root.style.setProperty('--accent', '#9f1239');
             } else if (n === 2) { // Marin
                 document.body.style.background = 'linear-gradient(135deg, #fce7f3, #831843)';
-                root.style.setProperty('--accent', '#ec4899');
             } else if (n === 3) { // Tren Twins
                 document.body.style.background = 'linear-gradient(135deg, #052e16, #166534)';
-                root.style.setProperty('--accent', '#22c55e');
             } else {
                 document.body.style.background = 'linear-gradient(135deg, #0a0a1a, #1a1a2e)';
-                root.style.setProperty('--accent', '#7c3aed');
             }
         }
 
         function getRandomEmoji() {
             const roll = Math.random();
-            if (Object.keys(collection).length >= 25 && roll < 0.001) {
-                return secretKayn;
-            }
+            if (Object.keys(collection).length >= 25 && roll < 0.001) return secretKayn;
             return emojis[Math.floor(Math.random() * emojis.length)];
         }
 
         function claimNow() {
             const now = Date.now();
-            if (now - lastClaim < 60000) {
-                alert("⏳ Wait for the timer!");
-                return;
-            }
+            if (now - lastClaim < 60000) return alert("⏳ Wait for the timer!");
+            
             const emoji = getRandomEmoji();
             if (!collection[emoji.name]) collection[emoji.name] = {...emoji, count: 0};
             collection[emoji.name].count++;
